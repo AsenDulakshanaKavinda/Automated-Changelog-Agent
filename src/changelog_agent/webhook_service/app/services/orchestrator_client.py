@@ -1,7 +1,7 @@
 
 import requests
 
-ORCHESTRATOR_URL = "ORCHESTRATOR_URL"
+ORCHESTRATOR_URL = "http://localhost:8001/orchestrator/start"
 
 
 def send_to_orchestrator(payload: dict):
@@ -12,6 +12,7 @@ def send_to_orchestrator(payload: dict):
     # send a POST request to the defined URL
     response = requests.post(ORCHESTRATOR_URL, json=payload, timeout=5)
     response.raise_for_status()
+
 
 
 

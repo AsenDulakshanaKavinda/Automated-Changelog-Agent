@@ -44,7 +44,7 @@ async def github_webhook(
         return {'status': 'ignored', 'event': x_github_event}
     
     # send to orchestrator
-    send_to_orchestrator(orchestrator_input)
+    # send_to_orchestrator(orchestrator_input)
 
     return {'status': 'accepted'}
 
