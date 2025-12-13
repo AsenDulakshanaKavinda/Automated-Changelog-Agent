@@ -13,7 +13,7 @@ def handle_push(payload):
         print('commit', commit['message'])
 
     print(f'repo: {repo}' )
-    print(f'author: {author}')
+    print(f'author name: {author}')
     
 
 
