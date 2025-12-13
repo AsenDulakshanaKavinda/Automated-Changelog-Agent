@@ -49,4 +49,7 @@ async def webhook(request: Request):
     else:
         print(f'No handler for {event_type}')
 
-    return {"status": "ok"}
+    return JSONResponse(
+            status_code=200,
+            content={"status": "success", "event": event_type}
+        )
