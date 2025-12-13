@@ -19,6 +19,8 @@ webhook-service/
  │   ├── main.py - FastAPI entry point
  │   ├── api/
  │   │   └── github_webhook.py - Github webhook endpoint
+ │   ├── event/
+ │   │   └── event_handlers.py - Github event handlers
  │   ├── core/
  │   │   └── security.py - Github signature verification
  │   ├── schemas/
