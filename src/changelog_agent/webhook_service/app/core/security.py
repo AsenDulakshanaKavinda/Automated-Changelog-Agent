@@ -1,51 +1,56 @@
 
 import hmac
 import hashlib
+from fastapi import HTTPException
 
-def verify_github_signature(
-        payload: bytes,
-        signature_header: str,
-        secret: str
-) -> bool:
-    
+from src.changelog_agent.utils.logger_config import log
+
+import hashlib
+import hmac
+
+from fastapi import HTTPException
+from src.changelog_agent.utils.logger_config import log
+
+import hashlib
+import hmac
+
+
+def verify_github_signature(payload_body: bytes, secret_token: str, signature_header: str):
     """
-    Securely verify the authenticity of a webhook payload from GitHub
+    Verify that the payload was sent from GitHub using SHA-1.
 
-    - Args
-        payload: bytes - raw body of the webhook request
-        signature_header - value from the GitHub webhook
-        secret - GitHub webhook secret (shared key between application and GitHub)
-
-    - Return
-        True if they match (payload is authentic), False otherwise
-
+    Args:
+        payload_body: Raw request body (request.body())
+        secret_token: GitHub webhook secret
+        signature_header: Value of 'X-Hub-Signature'
     """
-    
-    # if no signature -> return false
+
     if not signature_header:
-        return False
-    
-    # splits header -> hash algorithm name & actural signature (sha256, abc123)
-    sha_name, signature = signature_header.split("=")
+        log.warning("No GitHub signature header received")
+        raise HTTPException(
+            status_code=403,
+            detail="X-Hub-Signature header is missing"
+        )
 
-    # signature must use SHA-256
-    if sha_name != 'sha256':
-        return False
-    
-    # create new HMAC obj.
-    mac = hmac.new(
-        secret.encode(), # convert to bytes
-        msg=payload, # use raw payload as message
-        digestmod=hashlib.sha256 # Specifies SHA-256 as the hash function.
+    # Create HMAC SHA-1 digest
+    hash_object = hmac.new(
+        secret_token.encode("utf-8"),
+        msg=payload_body,
+        digestmod=hashlib.sha1
     )
 
-    # Gets the HMAC as a hexadecimal string and compare with signature
-    return hmac.compare_digest(mac.hexdigest(), signature)
+    expected_signature = f"sha1={hash_object.hexdigest()}"
 
+    # Constant-time comparison (security critical)
+    if not hmac.compare_digest(expected_signature, signature_header):
+        log.error(
+            f"GitHub signature mismatch | "
+            f"expected={expected_signature}, received={signature_header}"
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid GitHub signature"
+        )
 
-
-
-
-
-
+    return True
 

@@ -7,8 +7,6 @@ app = FastAPI(title='Webhook Service')
 
 # router inclusion
 app.include_router(
-    router,
-    prefix='/webhooks/github',
-    tags=['Github Webhooks']
+    router
 )
 
