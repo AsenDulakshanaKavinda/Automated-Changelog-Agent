@@ -1,5 +1,4 @@
 
-
 import hmac
 import hashlib
 
@@ -10,12 +9,12 @@ def verify_github_signature(
 ) -> bool:
     
     """
-    Securely verify the authenticity of a webhook payload from Github 
+    Securely verify the authenticity of a webhook payload from GitHub
 
     - Args
         payload: bytes - raw body of the webhook request
-        signature_header - value from the Github webhook
-        secret - Github webhook secret (shared key between application and Github)
+        signature_header - value from the GitHub webhook
+        secret - GitHub webhook secret (shared key between application and GitHub)
 
     - Return
         True if they match (payload is authentic), False otherwise

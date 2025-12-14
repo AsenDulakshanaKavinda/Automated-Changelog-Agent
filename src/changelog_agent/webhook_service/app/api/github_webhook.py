@@ -1,8 +1,9 @@
 
 from fastapi import APIRouter, Request, Header, HTTPException
-from app.core.security import verify_github_signature
-from app.services.orchestrator_client import send_to_orchestrator
-from app.event.handle_push_event import handle_push_event
+from src.changelog_agent.webhook_service.app.core.security import verify_github_signature
+from src.changelog_agent.webhook_service.app.event.handle_push_event import handle_push_event
+from src.changelog_agent.webhook_service.app.services.orchestrator_client import send_to_orchestrator
+
 from datetime import datetime
 import os
 
@@ -45,7 +46,7 @@ async def github_webhook(
         return {'status': 'ignored', 'event': x_github_event}
     
     # send to orchestrator
-    # send_to_orchestrator(orchestrator_input)
+    send_to_orchestrator(orchestrator_input)
 
     return {'status': 'accepted'}
 

@@ -20,7 +20,7 @@ Multi-Agent Pipeline
 # file stucture
 webhook-service/
  ├── app/
- │   ├── main.py - FastAPI entry point
+ │   ├── app.py - FastAPI entry point
  │   ├── api/
  │   │   └── github_webhook.py - Github webhook endpoint
  │   ├── event/
@@ -31,6 +31,7 @@ webhook-service/
  │   │   └── orchestrator.py - Orchestrator input schema
  │   └── services/
  │       └── orchestrator_client.py - Send data to orchestrator
+ │── main.py - End point
  └── requirements.txt
 
 

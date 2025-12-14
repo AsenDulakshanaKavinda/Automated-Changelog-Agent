@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter
-from src.changelog_agent.orchestrator_service import OrchestratorInput
+from src.changelog_agent.orchestrator_service.app.schemas.orchestrator_input import OrchestratorInput
 
 
 router = APIRouter()
