@@ -3,21 +3,8 @@
 ## Flow Diagram
 
 ```text
-GitHub
-  ↓
-Webhook Receiver
-  - verify signature
-  - detect event
-  - extract fields
-  - normalize
-  ↓
-Orchestrator Agent
-  ↓
-Multi-Agent Pipeline
 
-
-
-# file stucture
+# file structure
 webhook-service/
  ├── app/
  │   ├── app.py - FastAPI entry point
@@ -25,6 +12,7 @@ webhook-service/
  │   │   └── github_webhook.py - Github webhook endpoint
  │   ├── event/
  │   │   └── event_handlers.py - Github event handlers
+ │   │   └── ... event handlers (push, pr ...)
  │   ├── core/
  │   │   └── security.py - Github signature verification
  │   ├── schemas/
@@ -34,7 +22,7 @@ webhook-service/
  │── main.py - End point
  └── requirements.txt
 
-
+```
 
 
 

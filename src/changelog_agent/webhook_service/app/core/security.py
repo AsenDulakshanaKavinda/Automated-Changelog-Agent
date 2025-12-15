@@ -36,7 +36,7 @@ def verify_github_signature(payload_body: bytes, secret_token: str, signature_he
     if not hmac.compare_digest(expected_signature, signature_header):
         log.error(
             f"GitHub signature mismatch | "
-            f"expected={expected_signature}, received={signature_header}"
+            f"expected={expected_signature[:10]}, received={signature_header[:10]}"
         )
         raise HTTPException(
             status_code=403,
