@@ -18,10 +18,3 @@ def send_to_orchestrator(payload: OrchestratorInput):
     response.raise_for_status()
 
 
-
-
-
-
-
-
-

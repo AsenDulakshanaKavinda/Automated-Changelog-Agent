@@ -63,7 +63,7 @@ class ProjectException(Exception):
             self.error_message += f" | Context: {self.context}"
 
         # log the error with full traceback
-        logger.error(self.error_message, exc_info=True)
+        log.error(self.error_message, exc_info=True)
 
         # store original exception too
         self.original_exception = error
