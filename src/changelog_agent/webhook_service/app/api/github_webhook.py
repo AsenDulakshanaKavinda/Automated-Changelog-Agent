@@ -1,18 +1,16 @@
 import json
 
-from fastapi import APIRouter, Request, Header, HTTPException
-from sqlalchemy import false
+from fastapi import APIRouter, Request, HTTPException
+from pydantic import ValidationError
 
 from src.changelog_agent.webhook_service.app.core.security import verify_github_signature
-from src.changelog_agent.webhook_service.app.event.handle_pull_req_event import handle_pull_req_event
-from src.changelog_agent.webhook_service.app.event.handle_push_event import handle_push_event
+from src.changelog_agent.webhook_service.app.event.event_handler import event_handler
 from src.changelog_agent.webhook_service.app.services.orchestrator_client import send_to_orchestrator
-
+from src.changelog_agent.webhook_service.app.schemas.orchestrator_input import OrchestratorInput
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log
 
-from datetime import datetime
 import os
 from dotenv import load_dotenv
 
@@ -24,16 +22,16 @@ router = APIRouter()
 
 # GitHub webhook secret from .env
 GITHUB_SECRET = os.getenv('GITHUB_WEBHOOK_SECRET', 'supersecret')
-log.info(f'GITHUB_SECRET: {GITHUB_SECRET}')
-
-EVENT_HANDLERS = {
-    "push": handle_push_event,
-    "pull_request": handle_pull_req_event,
-}
+log.info(f'GITHUB_SECRET Read: {len(GITHUB_SECRET)}')
 
 @router.post('/')
 async def github_webhook(request: Request):
-    """ FastAPI router and endpoint for handling incoming GitHub webhooks """
+    """
+    FastAPI router and endpoint for handling incoming GitHub webhooks.
+
+    Args:
+        request (Request): Request object.
+    """
     
     # read raw request body
     raw_body = await request.body()
@@ -48,8 +46,9 @@ async def github_webhook(request: Request):
         log.warning(f'No event received from {request.url}')
         raise HTTPException(status_code=400, detail='Missing X-GitHub-Event header')
 
-    #
+    # handle signature and verify signature
     if not signature:
+        log.warning(f'No signature received from {request.url}')
         raise HTTPException(status_code=403, detail='Missing X-Hub-Signature header')
     verify_github_signature(raw_body, GITHUB_SECRET,signature)
 
@@ -65,26 +64,33 @@ async def github_webhook(request: Request):
         ProjectException(
             e,
             context={
-                'operation': 'github_webhook'
+                'operation': 'github_webhook',
+                'message': 'Failed to decode payload',
             },
             reraise=False
         )
         raise HTTPException(status_code=400, detail='Invalid JSON payload')
 
-    handler = EVENT_HANDLERS.get(event)
-    if not handler:
-        return {"status": "ignored", "event": event}
+    orchestrator_input = event_handler(event, payload)
 
-    orchestrator_input = handler(payload)
-    
+    try:
+        validated_input = OrchestratorInput(**orchestrator_input)
+    except ValidationError as e:
+        log.error(f'Validation error: {e}')
+        raise HTTPException(status_code=402, detail=str(e))
+
     # send to orchestrator
-    send_to_orchestrator(orchestrator_input)
-
-    return {'status': 'accepted'}
-
-
-
-    
+    try:
+        send_to_orchestrator(validated_input.model_dump())
+        return {'status': 'accepted'}
+    except Exception as e:
+        ProjectException(
+            e,
+            context={
+                'operation': 'github_webhook',
+                'message': 'Failed to send to orchestrator',
+            }
+        )
 
 
 

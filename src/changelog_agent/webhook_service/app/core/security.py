@@ -1,13 +1,4 @@
 
-import hmac
-import hashlib
-from fastapi import HTTPException
-
-from src.changelog_agent.utils.logger_config import log
-
-import hashlib
-import hmac
-
 from fastapi import HTTPException
 from src.changelog_agent.utils.logger_config import log
 
@@ -51,6 +42,6 @@ def verify_github_signature(payload_body: bytes, secret_token: str, signature_he
             status_code=403,
             detail="Invalid GitHub signature"
         )
-
+    log.info(f'expected_signature={expected_signature}, received={signature_header}')
     return True
 
