@@ -17,13 +17,6 @@ except Exception as e:
         e,
         context={
             'operation': 'mistral-language-model',
-            'message': 'error while connecting to ChatMistralAI in classifier service'
+            'message': 'error while connecting to ChatMistralAI in summarizer service'
         }
     )
-
-
-
-
-
-
-
