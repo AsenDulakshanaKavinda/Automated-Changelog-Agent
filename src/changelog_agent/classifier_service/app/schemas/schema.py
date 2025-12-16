@@ -9,6 +9,7 @@ class ClassificationResult(BaseModel):
     scope: str
     breaking_change: bool
     confidence: float
+    files_changed: list[str]
 
 
 """
