@@ -5,6 +5,7 @@ from typing import Literal
 class ClassificationResult(BaseModel):
     comment_sha: str
     type: Literal['feature', 'fix', 'chore', 'docs', 'refactor']
+    message: str
     scope: str
     breaking_change: bool
     confidence: float
