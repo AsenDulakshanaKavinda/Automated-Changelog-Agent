@@ -16,7 +16,6 @@ async def start(payload: OrchestratorInput):
     Entry point for all webhook driven workflows
     """
 
-    global classifications
     print("Orchestrator received payload")
     print(payload.model_dump())
     print(payload.commits)

@@ -1,5 +1,5 @@
 from src.changelog_agent.classifier_service.app.prompts.classification_prompt import classifier_prompt
-from src.changelog_agent.classifier_service.app.llm_clients.llm_client import llm
+from src.changelog_agent.llm_clients.llm_client import llm
 from src.changelog_agent.classifier_service.app.schemas.parser import classification_parser
 
 from src.changelog_agent.utils.exception_config import ProjectException

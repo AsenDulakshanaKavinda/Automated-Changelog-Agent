@@ -14,7 +14,7 @@ def send_to_orchestrator(payload: OrchestratorInput):
     """
 
     # send a POST request to the defined URL
-    response = requests.post(ORCHESTRATOR_URL, json=payload, timeout=5)
+    response = requests.post(ORCHESTRATOR_URL, json=payload)
     response.raise_for_status()
 
 
