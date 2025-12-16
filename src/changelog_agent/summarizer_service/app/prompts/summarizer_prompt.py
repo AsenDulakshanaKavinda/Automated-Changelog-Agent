@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 from src.changelog_agent.summarizer_service.app.schemas.parser import summarizer_parser
 
-summarizer_prompt = ChatPromptTemplate.from_model(
+summarizer_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system" , """ You are a Summarizer Agent in an automated changelog generation system.

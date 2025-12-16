@@ -26,17 +26,17 @@ def summarize_classified_commits(classified_commits):
 
         for classified_commit in classified_commits:
             result = summarize_chain.invoke({
-                'commit_sha': classified_commit.commit_sha,
-                'message': classified_commit.message,
-                'files_changed': classified_commit.files_changed,
+                'commit_sha': classified_commit['commit_sha'],
+                'message': classified_commit['classification'].message,
+                'files_changed': classified_commit['classification'].files_changed,
             })
 
             results.append({
-                'commit_sha': classified_commit.commit_sha,
-                'summarization': results,
+                'commit_sha': classified_commit['commit_sha'],
+                'summarization': result,
             })
             log.info(f'files_changed invoked')
-            return results
+        return results
 
     except Exception as e:
         ProjectException(

@@ -2,6 +2,7 @@
 from fastapi import APIRouter
 from src.changelog_agent.orchestrator_service.app.schemas.orchestrator_input import OrchestratorInput
 from src.changelog_agent.orchestrator_service.app.services.classifier_agent import run_classifier
+from src.changelog_agent.orchestrator_service.app.services.summarizer_agent import run_summarizer
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log
@@ -15,6 +16,7 @@ async def start(payload: OrchestratorInput):
     Entry point for all webhook driven workflows
     """
 
+    global classifications
     print("Orchestrator received payload")
     print(payload.model_dump())
     print(payload.commits)
@@ -35,20 +37,28 @@ async def start(payload: OrchestratorInput):
         # classification
         log.info("--- Running classifier agent ---")
         classifications = run_classifier(payload.commits)
-        print(classifications)
+        log.info(f'*-* classifications result *-*\n: {classifications}')
+
+        if not classifications:
+            raise ValueError('No classification received')
+
+        log.info("--- Running summarizer agent ---")
+        summarize_commits = run_summarizer(classifications)
+        log.info(f'*-* summarize result *-*\n: {summarize_commits}')
 
         return {
             'statusCode': 200,
             'status': 'success',
-            'classification': classifications
+            'classification': summarize_commits
         }
 
     except Exception as e:
         ProjectException(
             e,
             context={
-                'operation': 'start',
+                'operation': 'start - classifier',
                 'message': 'An error occurred',
             }
         )
+
 
