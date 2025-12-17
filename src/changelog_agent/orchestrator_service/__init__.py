@@ -23,10 +23,12 @@ __description__=(
 
 from src.changelog_agent.orchestrator_service.app.api.orchestrator import router
 from src.changelog_agent.orchestrator_service.app.schemas.orchestrator_input import (OrchestratorInput, )
+from src.changelog_agent.orchestrator_service.app.background_tasks.tasks import run_orchestration
 
 __all__ = [
     'router',
     'OrchestratorInput',
+    'run_orchestration',
 ]
 
 
