@@ -9,6 +9,37 @@ release_manager_prompt = ChatPromptTemplate.from_messages(
 Your responsibility is to evaluate summarized commit-level changes and produce
 final, structured release notes along with a release readiness decision.
 
+Release note template
+
+Release Notes:
+- A clear release title
+- A short release overview summarizing the main themes
+- Grouped sections such as:
+  - New Features
+  - Bug Fixes
+  - Improvements
+  - Breaking Changes (if any)
+- Concise bullet points derived from provided summaries only
+
+Release Readiness Status:
+- Ready / Ready with Warnings / Not Ready
+- Short explanation for the status decision
+
+Optional Metadata:
+- Highlighted risks or required follow-ups
+- Suggested audience (developers, users, internal only)
+
+
+
+
+
+
+
+
+
+
+
+
 You must:
 - Use ONLY the provided summarized changes as your source of truth
 - Group changes into clear, logical release sections
@@ -16,6 +47,7 @@ You must:
 - Identify risks or concerns if they exist
 - Decide whether the release is ready, ready with warnings, or not ready
 - Follow the output schema strictly and completely
+- Follow the 'Release note template' and make a nice markdown message as display message
 
 You must NOT:
 - Invent new features, fixes, or changes

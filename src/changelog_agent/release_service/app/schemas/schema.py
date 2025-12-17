@@ -25,6 +25,7 @@ class ReleaseManagerOutput(BaseModel):
     readiness: ReleaseReadiness = Field(..., description="Release readiness evaluation")
     risks: Optional[List[str]] = Field(None, description="Optional list of identified risks or concerns")
     audience: Optional[str] = Field(None, description="Suggested audience for this release (e.g. public, internal, developers)")
+    display_message: str = Field(..., description="Message displayed for this release as a markdown")
 
 
 
