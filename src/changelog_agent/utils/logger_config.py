@@ -88,7 +88,7 @@ class LogContext:
         if exc_type is None:
             self.logger.debug(f"Completed {self.operation}")
         else:
-            self.logger.error(f"Faild {self.operation}: {exc_val}", exc_info=True)
+            self.logger.error(f"Failed {self.operation}: {exc_val}", exc_info=True)
 
 
 # placeholder functions for compatability

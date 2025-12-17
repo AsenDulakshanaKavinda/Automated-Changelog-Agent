@@ -1,7 +1,6 @@
 from src.changelog_agent.summarizer_service.app.prompts.summarizer_prompt import summarizer_prompt
 from src.changelog_agent.llm_clients.llm_client import llm
 from src.changelog_agent.summarizer_service.app.schemas.parser import summarizer_parser
-from src.changelog_agent.summarizer_service.app.schemas.schema import SummarizerResults
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log

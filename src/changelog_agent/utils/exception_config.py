@@ -7,7 +7,6 @@ import traceback
 from typing import Optional, Dict, Any
 from .logger_config import log
 
-
 def format_error_message(error: Exception, tb) -> str:
     """
     create a detailed, readable error message.
