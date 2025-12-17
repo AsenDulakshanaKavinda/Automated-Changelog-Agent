@@ -1,9 +1,16 @@
-from src.changelog_agent.release_service.app.agent.release_manager_agent import release_manager
+
 from src.changelog_agent.utils.logger_config import log
 from src.changelog_agent.utils.exception_config import ProjectException
 
+from src.changelog_agent.release_service import release_manager
+
 
 def run_release_manager(summarized_commits):
+
+    """
+    Create a release note using summerize commits
+
+    """
 
 
     if not summarized_commits:

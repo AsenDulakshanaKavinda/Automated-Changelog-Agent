@@ -1,0 +1,3 @@
+app:
+  name: Automated Changelog Agent
+  env: Production

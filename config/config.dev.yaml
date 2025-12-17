@@ -1,0 +1,15 @@
+app:
+  name: Automated Changelog Agent
+  env: Development
+
+llm:
+  mistral:
+    provider: "mistral"
+    model_name: "mistral-small-latest"
+    temperature: 0.2
+
+  groq:
+    provider: 'groq'
+    model_name: ''
+    temperature: 0.2
+
