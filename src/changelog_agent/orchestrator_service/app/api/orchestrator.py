@@ -7,7 +7,6 @@ from src.changelog_agent.orchestrator_service.app.services.release_agent import 
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log
-from src.changelog_agent.classifier_service.app.agent.classification_agent import classify_commits
 
 router = APIRouter()
 

@@ -48,23 +48,6 @@ def release_manager(summarized_commits: str):
 
 
 
-    except Exception as e:
-        ProjectException(
-            e,
-            context={
-                'operation': 'release_commits',
-                'message': 'error while getting release note',
-            }
-        )
-
-
-
-
-
-
-
-
-
 
 
 
