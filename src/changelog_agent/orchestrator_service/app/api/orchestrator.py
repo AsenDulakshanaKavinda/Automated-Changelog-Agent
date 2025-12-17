@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from src.changelog_agent.orchestrator_service.app.schemas.orchestrator_input import OrchestratorInput
 from src.changelog_agent.orchestrator_service.app.services.classifier_agent import run_classifier
 from src.changelog_agent.orchestrator_service.app.services.summarizer_agent import run_summarizer
+from src.changelog_agent.orchestrator_service.app.services.release_agent import run_release_manager
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log
@@ -36,19 +37,26 @@ async def start(payload: OrchestratorInput):
         # classification
         log.info("--- Running classifier agent ---")
         classifications = run_classifier(payload.commits)
-        log.info(f'*-* classifications result *-*\n: {classifications}')
+        log.info(f'*-* classifications result *-*\n: {classifications} \n\n')
 
         if not classifications:
             raise ValueError('No classification received')
 
         log.info("--- Running summarizer agent ---")
-        summarize_commits = run_summarizer(classifications)
-        log.info(f'*-* summarize result *-*\n: {summarize_commits}')
+        summarized_commits = run_summarizer(classifications)
+        log.info(f'*-* summarize result *-*\n: {summarized_commits} \n\n')
+
+        if not summarized_commits:
+            raise ValueError('No summarization received')
+
+        log.info("--- Running Release agent ---")
+        release_note = run_release_manager(summarized_commits)
+        log.info(f'*-* release note result *-*\n: {release_note} \n\n')
 
         return {
             'statusCode': 200,
             'status': 'success',
-            'classification': summarize_commits
+            'classification': release_note
         }
 
     except Exception as e:

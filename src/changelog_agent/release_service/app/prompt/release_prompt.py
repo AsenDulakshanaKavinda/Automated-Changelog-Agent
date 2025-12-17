@@ -29,17 +29,6 @@ Optional Metadata:
 - Highlighted risks or required follow-ups
 - Suggested audience (developers, users, internal only)
 
-
-
-
-
-
-
-
-
-
-
-
 You must:
 - Use ONLY the provided summarized changes as your source of truth
 - Group changes into clear, logical release sections
@@ -64,13 +53,13 @@ Schema compliance is mandatory.
             "human", """Release Metadata:
 - Version: {release_version}
 - Date: {release_date}
+- summarized_commits: {summarized_commits}
 
 Summarized Changes:
 You are given a list of summarized commits. Each item includes:
 - Commit identifier
-- Change category (feature, bug fix, improvement, refactor, breaking change, etc.)
 - A concise human-readable summary
-- Optional confidence or risk indicators
+
 
 Release Policies:
 - Breaking changes must be clearly highlighted
@@ -85,6 +74,7 @@ Your task:
 2. Evaluate release readiness and provide a short explanation
 3. List any identified risks, if applicable
 4. Suggest the intended audience for this release
+5. create a display message
 
 {format_instructions}
 """
@@ -97,7 +87,14 @@ Your task:
 
 
 
-
+"""
+Summarized Changes:
+You are given a list of summarized commits. Each item includes:
+- Commit identifier
+- Change category (feature, bug fix, improvement, refactor, breaking change, etc.)
+- A concise human-readable summary
+- Optional confidence or risk indicators
+"""
 
 
 
