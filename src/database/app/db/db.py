@@ -3,15 +3,21 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 # connection URL for database
-URL_DATABASE = 'postgresql://postgres:postgres@localhost:5432/automated_changelog_agent'
+DATABASE_URL='postgresql+psycopg2://postgres:1234@localhost:5432/test'
 
-engine = create_engine(URL_DATABASE)
 
-# backend of the ORM ops.
-engine = create_engine(URL_DATABASE)
-
-#
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-#
 Base = declarative_base()
+
+# get the db connection
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
