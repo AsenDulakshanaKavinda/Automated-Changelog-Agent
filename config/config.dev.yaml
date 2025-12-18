@@ -13,3 +13,5 @@ llm:
     model_name: ''
     temperature: 0.2
 
+database:
+  database_url: 'postgresql://postgres:postgres@localhost:5432/automated_changelog_agent'
