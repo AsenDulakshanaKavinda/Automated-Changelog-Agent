@@ -63,6 +63,10 @@ async def github_webhook(request: Request):
     payload = extract_payload(raw_body)
     log.info('Payload created')
 
+    repo_name = payload['repository']['name']
+    branch = payload.get('ref')
+    author = payload.get("sender", {}).get("login")
+
     # build orchestrator input
     try:
         orchestrator_input_dict = event_handler(
@@ -88,254 +92,38 @@ async def github_webhook(request: Request):
         )
         raise HTTPException(status_code=502, detail="Failed to dispatch event")
 
+    # build database input
+    try:
+        db_input_dict = {
+            'webhook_id' : webhook_id,
+            'webhook_event' : webhook_event,
+            'repo_name' : repo_name,
+            'branch' : branch,
+            'author' : author,
+            # 'timestamp' : str(datetime.now),
+            # 'payload' : payload,
+        }
+        log.info("\n\n")
+        for key, value in db_input_dict.items():
+            log.info(f"Key: {key}, Value: {value}, type: {type(value)}")
+        log.info("\n")
+        db_input = WebhookTableSchema(**db_input_dict)
+    except ValidationError as e:
+        log.error("Invalid db input")
+        raise HTTPException(status_code=422, detail=str(e))
 
+    # send to db
+    try:
+        send_to_db(db_input.model_dump())
+        log.info('Event sent to database')
+    except Exception as e:
+        ProjectException(
+            e,
+            context={
+                "operation": "send_to_orchestrator",
+                "delivery_id": delivery_id,
+            }
+        )
+        raise HTTPException(status_code=502, detail="Failed to store event in db")   
 
     return {'status': 'accepted'}
-
-
-
-
-
-    """ log.info(f'webhook_id: {webhook_id}, type: {type(webhook_id)}')
-    log.info(f'webhook_event: {webhook_event}, type: {type(webhook_event)}')
-    log.info(f'signature: {signature}, type: {type(signature)}')
-    log.info(f'repo_name: {repo_name}, type: {type(repo_name)}')
-    log.info(f'branch: {branch}, type: {type(branch)}')
-    log.info(f'author: {author}, type: {type(author)}')
-    # log.info(f'author: {author}, type: {type(author)}')
-
-
-    # if header missing
-    if not webhook_event:
-        log.warning(f'No event received from {request.url}')
-        raise HTTPException(status_code=400, detail='Missing X-GitHub-Event header')
-
-    # handle signature and verify signature
-    if not signature:
-        log.warning(f'No signature received from {request.url}')
-        raise HTTPException(status_code=403, detail='Missing X-Hub-Signature header')
-    verify_github_signature(raw_body, GITHUB_SECRET, signature)
-
-    # if delivery missing
-    if not delivery:
-        log.warning(f'No delivery received from {webhook_event}')
-
-    # parse the body as JSON
-    try:
-        payload = json.loads(raw_body.decode('utf-8'))
-        log.info(f'Payload received from {webhook_event}')
-    except Exception as e:
-        ProjectException(
-            e,
-            context={
-                'operation': 'github_webhook',
-                'message': 'Failed to decode payload',
-            },
-            reraise=False
-        )
-        raise HTTPException(status_code=400, detail='Invalid JSON payload')
-
-    orchestrator_input = event_handler(webhook_event, payload)
-
-    try:
-        validated_orchester_input = OrchestratorInput(**orchestrator_input)
-    except ValidationError as e:
-        log.error(f'Validation error: {e}')
-        raise HTTPException(status_code=402, detail=str(e))
-
-    # send to orchestrator
-    try:
-        send_to_orchestrator(validated_orchester_input.model_dump())
-        return {'status': 'accepted'}
-    except Exception as e:
-        ProjectException(
-            e,
-            context={
-                'operation': 'github_webhook',
-                'message': 'Failed to send to orchestrator',
-            }
-        )
-
-    # - helper functions
-    def extract_payload(raw_body: bytes):
-        try:
-            payload = json.loads(raw_body.decode('utf-8'))
-            log.info('Payload extracted from the raw body')
-            return payload
-        except Exception as e:
-            ProjectException(
-                e, 
-                context={
-                    'operation': 'extract payload',
-                    'message': f'error: {str(e)}'
-                }
-            )
-            raise HTTPException(status_code=400, detail='Invalid JSON payload')
-
-    def validate_signature(signature, raw_body, GITHUB_SECRET):
-        
-        if not signature:
-            log.error('No signature received to validate')
-            raise HTTPException(status_code=400, detail='Missing X-Hub-Signature header')
-        verify_github_signature(raw_body, GITHUB_SECRET, signature)
-        
-
-
-    def handle_orchestrator_input(webhook_event, payload):
-
-        # orchestrator input
-        orchestrator_input = event_handler(event=webhook_event, payload=payload)
-
-        # validate the orchestrator_input
-        try:
-            validated_orchester_input = OrchestratorInput(**orchestrator_input)
-            return validated_orchester_input
-            log.info('Orchestrator input valid.')
-        except Exception as e:
-            log.error(f'orchesterinput validatedation failed.')
-            raise HTTPException(status_code=402, detail=str(e))
-
-    def handle_orchestrator(valid_orchestrator_data):
-        try:
-            send_to_orchestrator = (validated_orchester_input.model_dump())
-            # return {'status': 'accepted'}
-        except Exception as e:
-            ProjectException(
-            e,
-            context={
-                'operation': 'github_webhook',
-                'message': 'Failed to send to orchestrator',
-            }
-        )
-            
-    def create_and_validate_db_input():
-        pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # sent to db ----
-    db_input = {
-        'webhook_id': webhook_id,
-        'webhook_event': webhook_event,
-        'repo_name': repo_name,
-        'branch': branch,
-        'author': author,
-        'timestamp': datetime.now(),
-        'payload': payload,
-    }
-
-
-    # validata data ---
-    try:
-        # validated_db_input = WebhookTableSchema(**db_input)
-        log.info('db input is valid')
-    except Exception as e:
-        ProjectException(
-            e,
-            context={
-                'operation': 'github_webhook',
-                'message': 'Failed to validate db input',
-            }
-        )
-    # send data ---
-    try:
-        # send_to_db(validated_db_input.model_dump())
-        log.info('sending data to db service')
-        return {'status': 'accepted'}
-    except Exception as e:
-        ProjectException(
-            e,
-            context={
-                'operation': 'github_webhook',
-                'message': 'Failed to send to DB',
-            }
-        )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- """

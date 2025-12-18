@@ -10,8 +10,8 @@ class WebhookTableSchema(BaseModel):
     repo_name: str
     branch: Optional[str]
     author: Optional[str]
-    timestamp: datetime
-    payload: Dict[str, Any]
+    # timestamp: datetime
+    # payload: Dict[str, Any]
 
 
 
