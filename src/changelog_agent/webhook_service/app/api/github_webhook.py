@@ -1,17 +1,15 @@
 import json
-from datetime import datetime
 
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import ValidationError
 
-from src.changelog_agent.webhook_service.app.api.github_helper import *
-
 from src.changelog_agent.webhook_service.app.core.security import verify_github_signature
 from src.changelog_agent.webhook_service.app.event.event_handler import event_handler
+from src.changelog_agent.webhook_service.app.schemas.webhook_input import WebhookInput
 from src.changelog_agent.webhook_service.app.services.orchestrator_client import send_to_orchestrator
-from src.changelog_agent.webhook_service.app.services.db_client import send_to_db
 from src.changelog_agent.webhook_service.app.schemas.orchestrator_input import OrchestratorInput
-from src.changelog_agent.webhook_service.app.schemas.db_input import WebhookTableSchema
+
+from src.changelog_agent.webhook_service.app.services.database_client import send_to_database
 
 from src.changelog_agent.utils.exception_config import ProjectException
 from src.changelog_agent.utils.logger_config import log
@@ -29,101 +27,115 @@ router = APIRouter()
 GITHUB_SECRET = os.getenv('GITHUB_WEBHOOK_SECRET', 'supersecret')
 log.info(f'GITHUB_SECRET Read: {len(GITHUB_SECRET)}')
 
-
-
 @router.post('/')
 async def github_webhook(request: Request):
     """
-    # FastAPI router and endpoint for handling incoming GitHub webhooks.
+    FastAPI router and endpoint for handling incoming GitHub webhooks.
 
-    # Args:
-       request (Request): Request object.
+    Args:
+        request (Request): Request object.
     """
-
+    
     # read raw request body
     raw_body = await request.body()
-    
+
     # extract required headers
-    webhook_id = request.headers['X-GitHub-Hook-ID']
-    delivery_id = request.headers.get('X-GitHub-Delivery')
-    webhook_event = request.headers.get('X-GitHub-Event')
+    event = request.headers.get('X-GitHub-Event')
     signature = request.headers.get('X-Hub-Signature')
-    
-    if not webhook_event:
-        raise HTTPException(status_code=400, detail="Missing X-GitHub-Event header")
+    delivery = request.headers.get('X-GitHub-Delivery')
 
-    if not delivery_id:
-        log.warning("Missing X-GitHub-Delivery header")
 
-    # validate signature
-    if not validate_signature(signature, raw_body, GITHUB_SECRET):
-        raise HTTPException(status_code=400, detail='failed to verify the signature')
+    # if header missing
+    if not event:
+        log.warning(f'No event received from {request.url}')
+        raise HTTPException(status_code=400, detail='Missing X-GitHub-Event header')
 
-    # create the payload
-    payload = extract_payload(raw_body)
-    log.info('Payload created')
+    # handle signature and verify signature
+    if not signature:
+        log.warning(f'No signature received from {request.url}')
+        raise HTTPException(status_code=403, detail='Missing X-Hub-Signature header')
+    verify_github_signature(raw_body, GITHUB_SECRET,signature)
 
-    repo_name = payload['repository']['name']
-    branch = payload.get('ref')
-    author = payload.get("sender", {}).get("login")
+    # if delivery missing
+    if not delivery:
+        log.warning(f'No delivery received from {event}')
 
-    # build orchestrator input
+    # parse the body as JSON
     try:
-        orchestrator_input_dict = event_handler(
-            event=webhook_event,
-            payload=payload
+        payload = json.loads(raw_body.decode('utf-8'))
+        log.info(f'Payload received from {event}')
+        log.info(f'------------payload: {payload} -----------------')
+    except Exception as e:
+        ProjectException(
+            e,
+            context={
+                'operation': 'github_webhook',
+                'message': 'Failed to decode payload',
+            },
+            reraise=False
         )
-        orchestrator_input = OrchestratorInput(**orchestrator_input_dict)
+        raise HTTPException(status_code=400, detail='Invalid JSON payload')
+
+    orchestrator_input = event_handler(event, payload)
+
+
+    try:
+        validated_input = OrchestratorInput(**orchestrator_input)
     except ValidationError as e:
-        log.error("Invalid orchestrator input")
-        raise HTTPException(status_code=422, detail=str(e))
+        log.error(f'Validation error: {e}')
+        raise HTTPException(status_code=402, detail=str(e))
 
     # send to orchestrator
     try:
-        send_to_orchestrator(orchestrator_input.model_dump())
-        log.info("Event sent to orchestrator")
+        send_to_orchestrator(validated_input.model_dump())
+        # return {'status': 'accepted'}
     except Exception as e:
         ProjectException(
             e,
             context={
-                "operation": "send_to_orchestrator",
-                "delivery_id": delivery_id,
+                'operation': 'github_webhook',
+                'message': 'Failed to send to orchestrator',
             }
         )
-        raise HTTPException(status_code=502, detail="Failed to dispatch event")
 
-    # build database input
-    try:
-        db_input_dict = {
-            'webhook_id' : webhook_id,
-            'webhook_event' : webhook_event,
-            'repo_name' : repo_name,
-            'branch' : branch,
-            'author' : author,
-            # 'timestamp' : str(datetime.now),
-            # 'payload' : payload,
-        }
-        log.info("\n\n")
-        for key, value in db_input_dict.items():
-            log.info(f"Key: {key}, Value: {value}, type: {type(value)}")
-        log.info("\n")
-        db_input = WebhookTableSchema(**db_input_dict)
-    except ValidationError as e:
-        log.error("Invalid db input")
-        raise HTTPException(status_code=422, detail=str(e))
+    # -------------------
 
-    # send to db
+    database_input = {
+        "webhook_id": signature,
+        "webhook_event": event,
+        "repo_name": payload['repository']['name'],
+        "author": payload["pusher"]["name"]
+    }
+
+    log.info(f'database_input: {database_input}')
+
+
     try:
-        send_to_db(db_input.model_dump())
-        log.info('Event sent to database')
+        pass
     except Exception as e:
         ProjectException(
             e,
             context={
-                "operation": "send_to_orchestrator",
-                "delivery_id": delivery_id,
+                'operation': 'github_webhook',
+                'message': 'Failed to validate to database input',
             }
         )
-        raise HTTPException(status_code=502, detail="Failed to store event in db")   
 
-    return {'status': 'accepted'}
+
+
+    # send to database
+    try:
+        send_to_database(database_input)
+        return {"status": "success", "data": "database updated"}
+
+    except Exception as e:
+        ProjectException(
+            e,
+            context={
+                'operation': 'github_webhook',
+                'message': 'Failed to send to database',
+            }
+        )
+
+
+

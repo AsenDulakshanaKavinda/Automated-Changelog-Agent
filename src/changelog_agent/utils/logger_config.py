@@ -3,6 +3,7 @@
 """
 
 import logging
+import os
 import sys
 import inspect
 from functools import wraps
@@ -24,7 +25,8 @@ def get_logger(name: str = "Automated-Changelog-Agent") -> logging.Logger:
         logger.addHandler(console_handler)
 
         # file handler with rotation (max 5MB, keep 5 backups)
-        file_handler = RotatingFileHandler('app.log', maxBytes=5 * 1024 * 1024, backupCount=5)
+        os.makedirs(name='logs', exist_ok=True)
+        file_handler = RotatingFileHandler('./logs/logs.log', maxBytes=5 * 1024 * 1024, backupCount=5)
         file_formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )

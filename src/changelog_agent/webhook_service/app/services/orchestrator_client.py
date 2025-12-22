@@ -2,7 +2,7 @@
 import requests
 from src.changelog_agent.webhook_service.app.schemas.orchestrator_input import OrchestratorInput
 
-ORCHESTRATOR_URL = "http://localhost:8003/orchestrator/start"
+ORCHESTRATOR_URL = "http://localhost:8002/orchestrator/start"
 
 
 def send_to_orchestrator(payload: OrchestratorInput):
